@@ -18,7 +18,7 @@ class SettingsScreen extends ConsumerWidget {
           ListTile(
             leading: const Icon(Icons.star_outline, color: AppTheme.primaryColor),
             title: const Text('Unlock Premium'),
-            subtitle: const Text('Unlimited children, PDF export, and more'),
+            subtitle: const Text('Unlimited children, voice fills and PDF export'),
             onTap: () => context.push('/premium'),
           ),
           const Divider(),
