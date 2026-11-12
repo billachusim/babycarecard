@@ -28,5 +28,15 @@ void main() {
       expect(result.name, 'Zara');
       expect(result.ageGroup, 'Preschooler');
     });
+
+    test('never takes the pediatrician or other people as personality', () {
+      final result = VoiceParser.parse(
+          'This is Mia, a fourteen-month-old toddler. She is allergic to peanuts. '
+          'Our pediatrician is Green Lane Pediatrics.');
+      expect(result.name, 'Mia');
+      expect(result.ageGroup, 'Toddler');
+      expect(result.allergies, 'Peanuts');
+      expect(result.personality, isNull);
+    });
   });
 }
