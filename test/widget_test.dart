@@ -11,6 +11,10 @@ void main() {
       ),
     );
 
+    // The first-launch check is async (no saved data in tests), so let it run.
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 200)));
+    await tester.pump();
+
     // Verify that onboarding is shown.
     expect(find.text('Leaving your child with someone?'), findsOneWidget);
   });

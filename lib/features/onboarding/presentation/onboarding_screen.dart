@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../data/local/app_settings.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -68,6 +69,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ElevatedButton(
                     onPressed: () {
                       if (_currentPage == _pages.length - 1) {
+                        AppSettings.setOnboardingDone();
                         context.go('/home');
                       } else {
                         _pageController.nextPage(

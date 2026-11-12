@@ -9,6 +9,7 @@ import '../../features/settings/presentation/settings_screen.dart';
 
 import '../../features/care_card/presentation/qr_code_screen.dart';
 import '../../features/voice/presentation/voice_fill_screen.dart';
+import '../../data/local/app_settings.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -16,6 +17,9 @@ final routerProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(
         path: '/',
+        // Onboarding only on first launch; afterwards open straight on Home.
+        redirect: (context, state) async =>
+            await AppSettings.isOnboardingDone() ? '/home' : null,
         builder: (context, state) => const OnboardingScreen(),
       ),
       GoRoute(
