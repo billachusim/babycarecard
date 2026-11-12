@@ -60,16 +60,20 @@ class VoiceParser {
       allergies = _capitalize(allergyTo.group(1)!);
     }
 
-    // Personality: "is [word]", "seems [word]", "very [word]".
-    final matches = RegExp(r'\b(?:is|seems|very)\s+([a-zA-Z\s]+?)(?:\.|$|\band\b)')
+    // Personality: only from "he/she/they is|seems [very] X", so phrases
+    // like "our pediatrician is Green Lane" are never picked up.
+    const notPersonality = {
+      'a', 'an', 'the', 'allergic', 'about', 'around', 'on', 'at', 'in',
+      'our', 'my', 'not', 'usually', 'always', 'asleep', 'awake', 'called', 'named',
+    };
+    final traits = RegExp(
+      r"\b(?:he|she|they)(?:'s|\s+is|\s+are|\s+seems|\s+seem)\s+(?:very\s+|really\s+|super\s+|extremely\s+|so\s+)?([a-z]+)\b",
+    )
         .allMatches(lowerText)
-        .where((m) => !RegExp(r'^(?:a|an|the|named|called|allergic)\b')
-            .hasMatch(m.group(1)!.trim().replaceFirst(RegExp(r'^(very|extremely|super)\s+'), '')));
-    if (matches.isNotEmpty) {
-      personality = matches.last.group(1)!.trim();
-      personality = personality.replaceFirst(RegExp(r'\b(a|very|extremely|super)\b\s*'), '').trim();
-      if (personality.isEmpty) personality = null;
-    }
+        .map((m) => m.group(1)!)
+        .where((word) => !notPersonality.contains(word) && !RegExp(r'^\d').hasMatch(word))
+        .toList();
+    if (traits.isNotEmpty) personality = traits.last;
 
     return ParsedChildInfo(
       name: name,

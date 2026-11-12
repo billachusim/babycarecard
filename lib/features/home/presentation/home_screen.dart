@@ -61,11 +61,17 @@ class HomeScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('Error: $err')),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _onAddChildPressed(context, ref, childCount),
-        label: const Text('Add Child'),
-        icon: const Icon(Icons.add),
-      ),
+      // The empty state has its own Add Child buttons, so only show this
+      // once there's at least one card.
+      floatingActionButton: childCount == 0
+          ? null
+          : FloatingActionButton.extended(
+              onPressed: () => _onAddChildPressed(context, ref, childCount),
+              backgroundColor: AppTheme.primaryColor,
+              foregroundColor: Colors.white,
+              label: const Text('Add Child'),
+              icon: const Icon(Icons.add),
+            ),
     );
   }
 }
