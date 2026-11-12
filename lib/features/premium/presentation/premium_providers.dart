@@ -80,41 +80,59 @@ class PremiumNotifier extends Notifier<PremiumState> {
       },
     );
 
-    final bool available = await _iap.isAvailable();
-    if (!available) {
+    state = state.copyWith(isPremium: isUnlocked);
+    await _loadProduct();
+  }
+
+  /// How long to wait for the store before showing a retry instead of a
+  /// spinner that never ends.
+  static const _storeTimeout = Duration(seconds: 10);
+
+  Future<void> _loadProduct() async {
+    try {
+      final bool available = await _iap.isAvailable().timeout(_storeTimeout);
+      if (!available) {
+        state = state.copyWith(
+          isLoading: false,
+          isStoreAvailable: false,
+          errorMessage: "The store isn't available right now. Please try again.",
+        );
+        return;
+      }
+
+      final ProductDetailsResponse response =
+          await _iap.queryProductDetails({productId}).timeout(_storeTimeout);
+
+      ProductDetails? details;
+      if (response.productDetails.isNotEmpty) {
+        details = response.productDetails.firstWhere(
+          (element) => element.id == productId,
+          orElse: () => response.productDetails.first,
+        );
+      }
+
       state = state.copyWith(
-        isPremium: isUnlocked,
         isLoading: false,
-        isStoreAvailable: false,
+        isStoreAvailable: true,
+        productDetails: details,
+        errorMessage: details == null
+            ? "Couldn't load the price from the store. Tap Unlock to try again."
+            : null,
       );
-      return;
-    }
-
-    final ProductDetailsResponse response =
-        await _iap.queryProductDetails({productId});
-
-    ProductDetails? details;
-    if (response.productDetails.isNotEmpty) {
-      details = response.productDetails.firstWhere(
-        (element) => element.id == productId,
-        orElse: () => response.productDetails.first,
+    } catch (_) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: "Couldn't reach the store. Check your connection and tap Unlock to try again.",
       );
     }
-
-    state = state.copyWith(
-      isPremium: isUnlocked,
-      isLoading: false,
-      isStoreAvailable: true,
-      productDetails: details,
-    );
   }
 
   Future<void> buyLifetime() async {
     if (state.productDetails == null) {
-      state = state.copyWith(
-        errorMessage: 'Store product details not loaded. Please try again in a moment.',
-      );
-      return;
+      // Price didn't load earlier (slow store or offline): try once more.
+      state = state.copyWith(isLoading: true, errorMessage: null, successMessage: null);
+      await _loadProduct();
+      if (state.productDetails == null) return;
     }
 
     state = state.copyWith(isLoading: true, errorMessage: null, successMessage: null);
